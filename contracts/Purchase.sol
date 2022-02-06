@@ -26,7 +26,7 @@ contract Purchase {
     // Only buyer can call this function
     error OnlyBuyer();
     // Only seller can call this function
-    error OnlySeller());
+    error OnlySeller();
     // The function cannot be called at the current state
     error InvalidState();
     // The provided value is incorrect. This will
