@@ -15,14 +15,11 @@ function App() {
   const [account, setAccount] = useState(null)
 
   useEffect(() => {
+    // detect provider set state variable that holds web3Api
     const loadProvider = async () =>{
-      //npm package detects the provider
       const provider = await detectEthereumProvider()
 
       if (provider) {
-        //request metamask/provider to connect account
-        // provider.request({method: "eth_requestAccounts"})
-
         setWeb3Api({
           web3: new Web3(provider),
           provider
@@ -36,10 +33,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    //uses web3Api instantiated abov to get accounts array
     const getAccounts = async () => {
       const accounts = await web3Api.web3.eth.getAccounts()
 
-      //uses web3 api instantiated above in load provider in order to get accounts array
       setAccount(accounts[0])
     }
 
