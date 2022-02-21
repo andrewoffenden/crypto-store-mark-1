@@ -3,26 +3,31 @@ import detectEthereumProvider from '@metamask/detect-provider';
 import "./css/App.css";
 
 import { useEffect, useState } from "react";
+import { loadContract } from "./utils/load-contract";
 
 function App() {
 
 
   const [web3Api, setWeb3Api] = useState({
     provider: null,
-    web3: null
+    web3: null,
+    contract: null
   })
 
+  const [balance, setBalance] = useState(null)
   const [account, setAccount] = useState(null)
 
   useEffect(() => {
     // detect provider set state variable that holds web3Api
     const loadProvider = async () =>{
       const provider = await detectEthereumProvider()
+      const contract = await loadContract("Migrations", provider) //contract here is an example
 
       if (provider) {
         setWeb3Api({
           web3: new Web3(provider),
-          provider
+          provider,
+          contract
         })
       } else {
         console.error("Please install metamask")
@@ -31,6 +36,18 @@ function App() {
 
     loadProvider()
   }, []);
+
+  //page displays balance of contract that is specified in loadContract
+  useEffect(()=> {
+    const loadBalance = async () => {
+      const { contract,web3 } = web3Api
+      const balance = await web3.eth.getBalance(contract.address)
+
+      setBalance(web3.utils.fromWei(balance, "ether"))
+    }
+
+    web3Api.contract && loadBalance()
+  }, [web3Api])
 
   useEffect(() => {
     //uses web3Api instantiated abov to get accounts array
@@ -70,7 +87,7 @@ function App() {
           }
         </div>
         <div className="balance-view is-size-2 my-4">
-          Current Balance: <strong>10</strong> ETH
+          Current Balance: <strong>{balance}</strong> ETH
         </div>
       </div>
     </div>
