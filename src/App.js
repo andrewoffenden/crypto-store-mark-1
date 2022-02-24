@@ -16,6 +16,10 @@ function App() {
 
   const [balance, setBalance] = useState(null)
   const [account, setAccount] = useState(null)
+  const [reload, setReload] = useState(false)
+
+  //call this with a function that changes the balance to update the UI through loadBalance
+  const reloadEffect = () => setReload(!reload)
 
   useEffect(() => {
     // detect provider set state variable that holds web3Api
@@ -47,7 +51,7 @@ function App() {
     }
 
     web3Api.contract && loadBalance()
-  }, [web3Api])
+  }, [web3Api, reload])
 
   useEffect(() => {
     //uses web3Api instantiated abov to get accounts array
