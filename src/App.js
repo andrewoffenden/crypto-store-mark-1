@@ -19,7 +19,12 @@ function App() {
   const [reload, setReload] = useState(false)
 
   //call this with a function that changes the balance to update the UI through loadBalance
-  const reloadEffect = () => setReload(!reload)
+  const reloadUI = () => setReload(!reload)
+
+  //call hooks into a listener in metamask API, trigger when account is changed.
+  const setAccountListener = provider => {
+    provider.on("accountsChanged", accounts => setAccount(accounts[0]))
+  }
 
   useEffect(() => {
     // detect provider set state variable that holds web3Api
@@ -28,6 +33,7 @@ function App() {
       const contract = await loadContract("Migrations", provider) //contract here is an example
 
       if (provider) {
+        setAccountListener(provider)
         setWeb3Api({
           web3: new Web3(provider),
           provider,
