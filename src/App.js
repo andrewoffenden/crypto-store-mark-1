@@ -23,16 +23,25 @@ function App() {
 
   //call hooks into a listener in metamask API, trigger when account is changed.
   const setAccountListener = provider => {
-    provider.on("accountsChanged", accounts => setAccount(accounts[0]))
+    provider.on("accountsChanged", _ => window.location.reload())
+
+    // provider._jsonRpcConnection.events.on("notification", payload => {
+    //   const { method } = payload
+
+    //   if (method === "metamask_unlockStateChanged") {
+    //     setAccount(null)
+    //   }
+    // })
   }
 
   useEffect(() => {
     // detect provider set state variable that holds web3Api
     const loadProvider = async () =>{
       const provider = await detectEthereumProvider()
-      const contract = await loadContract("Migrations", provider) //contract here is an example
 
       if (provider) {
+        const contract = await loadContract("Migrations", provider) //contract here is an example
+
         setAccountListener(provider)
         setWeb3Api({
           web3: new Web3(provider),
@@ -45,7 +54,7 @@ function App() {
     };
 
     loadProvider()
-  }, []);
+  }, [account]);
 
   //page displays balance of contract that is specified in loadContract
   useEffect(()=> {
@@ -84,8 +93,14 @@ function App() {
               <div>
                 {account}
               </div>
-            </>
-            :
+            </>:
+            !web3Api.provider ?
+              <>
+                <div className="notification is-warning is-small is-rounded">
+                  Wallet is not detected!
+                  <a target="_blank" href="https://docs.metamask.io"></a>
+                </div>
+              </>:
             <button
               className="button is-info"
               onClick={() =>
