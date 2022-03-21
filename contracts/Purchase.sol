@@ -4,8 +4,8 @@
 
 pragma solidity >=0.8.0 < 0.9.0;
 contract Purchase {
-    // feevalue will be the value of the fee.
-    uint public feevalue;
+    // value will be the value of the fee.
+    uint public value;
     address payable public seller;
     address payable public buyer;
 
@@ -55,17 +55,31 @@ contract Purchase {
     }
 
     event Aborted();
-    event PurchaseConfirmed();
+    event PurchaseConfirmed(address _buyer, uint _value);
     event ItemReceived();
     event SellerRefunded();
 
-    // TODO:: This needs to be able to receive
+    // FUTURE:: This needs to be able to receive
     // the ammount of crypto, and check that the
-    // amount is a percentage higher than teh 
+    // amount is a percentage higher than the 
     // value of the item being sold.
-    constructor() payable {
+    /*constructor() payable {
         seller = payable(msg.sender);
-        feevalue = msg.value;
+        value = msg.value;
+    }*/
+
+    // This constructor will be used for simple 
+    // crypto store.
+    constructor() {
+        seller = payable(msg.sender);
+        state = State.Created;
+    }
+
+    // This is the function to buy an item
+    function buyItem() external inState(State.Created) payable {
+        emit PurchaseConfirmed(msg.sender, msg.value);
+        state = State.Locked;
+        seller.transfer(msg.value);
     }
 
     // Abort purchase and reclaim crypto.
@@ -76,36 +90,36 @@ contract Purchase {
         state = State.Inactive;
         // Transfer here because it is the last
         // call in this function. reentrancy-safe.
-        seller.transfer(address(this).balance);
+        //seller.transfer(address(this).balance);
     }
 
     // Confirm the purchase as a buyer.
     // Transaction has to include the additional fee
     // The crypto will be locked until confirmReceived
     // is called.
-    // TODO:: Work on the feevalue to make sure this is working properly.
-    function confirmPurchase() external inState(State.Created) condition(msg.value == feevalue) payable {
-        emit PurchaseConfirmed();
+    // FUTURE:: Work on the value to make sure this is working properly.
+    function confirmPurchase() external inState(State.Created) condition(msg.value == value) payable {
+        emit PurchaseConfirmed(msg.sender, msg.value);
         buyer = payable(msg.sender);
         state = State.Locked;
     }
 
     // Confirm the buyer received the item.
     // This will release the locked crypto.
-    // TODO :: Get the fee value fixed.
+    // FUTURE :: Get the fee value fixed.
     function confirmReceived() external onlyBuyer inState(State.Locked) {
         emit ItemReceived();
         // Important to change the state first. Prevents it from being called again.
         state = State.Release;
-        buyer.transfer(feevalue);
+        buyer.transfer(value);
     }
 
     // This function refunds the seller. Pays back the locked funds.
-    // TODO :: Get the feevalue fixed.
+    // FUTURE :: Get the value fixed.
     function refundSeller() external onlySeller inState(State.Release) {
         emit SellerRefunded();
         // Change state first to prevent being called again.
         state = State.Inactive;
-        seller.transfer(feevalue);
+        seller.transfer(value);
     }
 }
