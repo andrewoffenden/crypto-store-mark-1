@@ -82,6 +82,10 @@ contract Purchase {
         seller.transfer(msg.value);
     }
 
+    function soldItem() external onlySeller inState(State.Locked) {
+        state = State.Inactive;
+    }
+
     // Abort purchase and reclaim crypto.
     // Can only be called by the seller before
     // the contract is locked.
